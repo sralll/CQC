@@ -6,6 +6,8 @@ const port = 3000;
 
 const { exec } = require('child_process');
 
+const multer = require('multer');
+
 // Parse incoming JSON requests
 app.use(express.json());
 
