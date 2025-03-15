@@ -250,6 +250,7 @@
 			<div id="inputDiv">
             	<input type="text" id="filename" placeholder="Projektname">
             	<button id="submitSaveButton">Speichern</button>
+				<button id="downloadButton" onclick="downloadJSON(cqc, 'cqc_data.json')">Download</button>
 			</div>
 			<div id="projectTableDiv">
 				<table id="fileTable">
@@ -472,6 +473,26 @@
 		}
 	}
 	
+	// Function to download the cqc object as a .json file
+	function downloadJSON(data, filename = 'data.json') {
+		// Convert the JavaScript object to a JSON string
+		const jsonString = JSON.stringify(data, null, 2); // Pretty print with 2 spaces
+
+		// Create a Blob from the JSON string
+		const blob = new Blob([jsonString], { type: 'application/json' });
+
+		// Create an invisible download link
+		const link = document.createElement('a');
+		link.href = URL.createObjectURL(blob);
+		link.download = filename;
+
+		// Programmatically click the link to trigger the download
+		link.click();
+
+		// Clean up the URL object after the download
+		URL.revokeObjectURL(link.href);
+	}
+
 	function resizeCanvas() {
 		//follow window size change
 		routeCanvas.width = window.innerWidth;
