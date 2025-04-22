@@ -622,76 +622,121 @@ body, html {
         }
 
         function drawRoutes()  {
-            ctx.beginPath();
+            if (cqc.cP[ncP].complex) {
 
-            cqc.cP[ncP].route.forEach((route, nR) => {
-                ctx.beginPath(); // Start a new path for each route
-                route.rP.forEach((point, idx) => {
-                    if (idx === 0) {
-                        ctx.moveTo(point.x / cqc.scale, point.y / cqc.scale);
-                    } else {
-                        ctx.lineTo(point.x / cqc.scale, point.y / cqc.scale);
-                    }
-                });
-                ctx.strokeStyle = "white"; // Ensure we don't go out of bounds
-                ctx.lineWidth = 6;
-                ctx.stroke(); // Stroke once per route, not per point
-            });
-
-            const randomizedIndices = generateRandomizedIndices(cqc.cP[ncP].route);
-            
-            const colorPicker = reduceColors(cqc.cP[ncP].route.length);
-            routeButtonContainer.innerHTML = ""; // Clear existing cells
-
-            const table = document.createElement("table");
-            table.style.width = "100%";
-            table.style.tableLayout = "fixed";
-            table.style.borderCollapse = "collapse";
-            table.style.margin = "0px";
-            table.style.padding = "0px";
-            const thead = document.createElement("thead");
-            const headerRow = document.createElement("tr");
-
-            choiceMade = false;
-
-            // Draw routes in randomized order
-            randomizedIndices.forEach((index, indexColor) => {
-                const route = cqc.cP[ncP].route[index];
-                
-                // Begin a new path for each route
                 ctx.beginPath();
-                route.rP.forEach((point, idx) => {
-                    if (idx === 0) {
-                        ctx.moveTo(point.x / cqc.scale, point.y / cqc.scale);
-                    } else {
-                        ctx.lineTo(point.x / cqc.scale, point.y / cqc.scale);
-                    }
+
+                cqc.cP[ncP].route.forEach((route, nR) => {
+                    ctx.beginPath(); // Start a new path for each route
+                    route.rP.forEach((point, idx) => {
+                        if (idx === 0) {
+                            ctx.moveTo(point.x / cqc.scale, point.y / cqc.scale);
+                        } else {
+                            ctx.lineTo(point.x / cqc.scale, point.y / cqc.scale);
+                        }
+                    });
+                    ctx.strokeStyle = "white"; // Ensure we don't go out of bounds
+                    ctx.lineWidth = 6;
+                    ctx.stroke(); // Stroke once per route, not per point
                 });
 
-                // Set the color for the route based on randomized index
-                ctx.strokeStyle = routeColor[colorPicker[indexColor]];
-                ctx.lineWidth = 4;
-                ctx.stroke(); // Stroke the route
+                const randomizedIndices = generateRandomizedIndices(cqc.cP[ncP].route);
+                
+                const colorPicker = reduceColors(cqc.cP[ncP].route.length);
+                routeButtonContainer.innerHTML = ""; // Clear existing cells
 
-                const routeCell = document.createElement("td");
-                routeCell.style.border = "1px solid black";
-                routeCell.style.backgroundColor = routeColor[colorPicker[indexColor]]; // Assign color
-                routeCell.style.cursor = "pointer";
-                routeCell.style.height = (answerWrapperHeight/4-3) + "px";
+                const table = document.createElement("table");
+                table.style.width = "100%";
+                table.style.tableLayout = "fixed";
+                table.style.borderCollapse = "collapse";
+                table.style.margin = "0px";
+                table.style.padding = "0px";
+                const thead = document.createElement("thead");
+                const headerRow = document.createElement("tr");
 
-                routeCell.addEventListener("click", () => {
-                    submitChoice(index, randomizedIndices, colorPicker);
+                choiceMade = false;
+
+                // Draw routes in randomized order
+                randomizedIndices.forEach((index, indexColor) => {
+                    const route = cqc.cP[ncP].route[index];
+                    
+                    // Begin a new path for each route
+                    ctx.beginPath();
+                    route.rP.forEach((point, idx) => {
+                        if (idx === 0) {
+                            ctx.moveTo(point.x / cqc.scale, point.y / cqc.scale);
+                        } else {
+                            ctx.lineTo(point.x / cqc.scale, point.y / cqc.scale);
+                        }
+                    });
+
+                    // Set the color for the route based on randomized index
+                    ctx.strokeStyle = routeColor[colorPicker[indexColor]];
+                    ctx.lineWidth = 4;
+                    ctx.stroke(); // Stroke the route
+
+                    const routeCell = document.createElement("td");
+                    routeCell.style.border = "1px solid black";
+                    routeCell.style.backgroundColor = routeColor[colorPicker[indexColor]]; // Assign color
+                    routeCell.style.cursor = "pointer";
+                    routeCell.style.height = (answerWrapperHeight/4-3) + "px";
+
+                    routeCell.addEventListener("click", () => {
+                        submitChoice(index, randomizedIndices, colorPicker);
+                    });
+
+                    headerRow.appendChild(routeCell);
+
+                });
+                thead.appendChild(headerRow);
+                table.appendChild(thead);
+                routeButtonContainer.appendChild(table);
+
+                resultBox.innerHTML = "";
+                nextButton.style.display = "none";
+            }
+
+            else {
+                routeButtonContainer.innerHTML = ""; // Clear existing cells
+
+                if (cqc.cP[ncP].route[0].pos == "left") {routeOrder = [0, 1];}
+                else {routeOrder = [1, 0];}
+
+                const colorPicker = reduceColors(cqc.cP[ncP].route.length);
+                const answerText = ["Links", "Rechts"];
+                const table = document.createElement("table");
+                table.style.width = "100%";
+                table.style.tableLayout = "fixed";
+                table.style.borderCollapse = "collapse";
+                table.style.margin = "0px";
+                table.style.padding = "0px";
+                const thead = document.createElement("thead");
+                const headerRow = document.createElement("tr");
+
+                cqc.cP[ncP].route.forEach((route, index) => {
+                    const routeCell = document.createElement("td");
+                    routeCell.style.border = "1px solid black";
+                    routeCell.style.backgroundColor = routeColor[colorPicker[routeOrder[index]]]; // Assign color
+                    routeCell.textContent = answerText[index]; // Assign text
+                    routeCell.style.cursor = "pointer";
+                    routeCell.style.height = (answerWrapperHeight/4-3) + "px";
+                    routeCell.addEventListener("click", () => {
+                        submitChoice(routeOrder[index], routeOrder, colorPicker);
+                    });
+
+                    headerRow.appendChild(routeCell);
+                    routeCell.style.fontSize = (answerWrapperHeight/12) + "px";
                 });
 
-                headerRow.appendChild(routeCell);
+                thead.appendChild(headerRow);
+                table.appendChild(thead);
+                routeButtonContainer.appendChild(table);
 
-            });
-            thead.appendChild(headerRow);
-            table.appendChild(thead);
-            routeButtonContainer.appendChild(table);
+                choiceMade = false;
 
-            resultBox.innerHTML = "";
-            nextButton.style.display = "none";
+                resultBox.innerHTML = "";
+                nextButton.style.display = "none";
+            }
         }
 
         function reduceColors(length) {
@@ -747,6 +792,42 @@ body, html {
             
             resultBox.innerHTML = "";
 
+            if (!cqc.cP[ncP].complex) {
+                cqc.cP[ncP].route.forEach((route, nR) => {
+                    ctx.beginPath(); // Start a new path for each route
+                    route.rP.forEach((point, idx) => {
+                        if (idx === 0) {
+                            ctx.moveTo(point.x / cqc.scale, point.y / cqc.scale);
+                        } else {
+                            ctx.lineTo(point.x / cqc.scale, point.y / cqc.scale);
+                        }
+                    });
+                    ctx.strokeStyle = "white"; // Ensure we don't go out of bounds
+                    ctx.lineWidth = 6;
+                    ctx.stroke(); // Stroke once per route, not per point
+                });
+
+                // Draw routes in randomized order
+                cqc.cP[ncP].route.forEach((route, index) => {
+                    
+                    // Begin a new path for each route
+                    ctx.beginPath();
+                    route.rP.forEach((point, idx) => {
+                        if (idx === 0) {
+                            ctx.moveTo(point.x / cqc.scale, point.y / cqc.scale);
+                        } else {
+                            ctx.lineTo(point.x / cqc.scale, point.y / cqc.scale);
+                        }
+                    });
+
+                    // Set the color for the route based on randomized index
+                    ctx.strokeStyle = routeColor[reducedColorMap[index]];
+                    ctx.lineWidth = 4;
+                    ctx.stroke(); // Stroke the route
+
+                });
+
+            }
             // Loop through all routes and display their .dist property
             routeOrder.forEach((routeIndex) => {
                 const cell = document.createElement("td");

@@ -85,7 +85,12 @@
 	#tableC {
 		overflow-x: hidden;
         overflow-y: scroll;
+		direction: rtl;
     }
+
+	#controlPairsTable {
+  		direction: ltr; /* Restores normal text direction */
+	}
 
 	.tableHeadMain {
 		border: 2px solid black;
@@ -337,12 +342,46 @@
             td.textContent = `Posten ${i+1}`; //write control numbers
 			td.addEventListener('click', function() {setcP(i);}); //function to jump to the respective control pair
 			td.style.setProperty('--td-background-color', '#D6EEEE'); //hover color change
-			
+
 			if (i == ncP) {
 				td.style.backgroundColor  = "yellow"; //highlight current control pair
 			}
 			//add cells, rows
             row.appendChild(td);
+
+			const tdtc = document.createElement('td');
+			tdtc.classList.add('tableCellMain');
+			tdtc.textContent = 'M'; //write control numbers
+			if (cqc.cP[i].complex) {
+				tdtc.style.backgroundColor  = "#6699ff"; //highlight current control pair
+			}
+
+			tdtc.onclick = () => {
+				cqc.cP[i].complex = true;
+				draw(rc); //update canvas, tables
+			};
+
+            row.appendChild(tdtc);
+
+			const tdtb = document.createElement('td');
+			tdtb.classList.add('tableCellMain');
+			tdtb.textContent = 'L/R'; //write control numbers
+			if (!cqc.cP[i].complex) {
+				tdtb.style.backgroundColor  = "#6699ff"; //highlight current control pair
+			}
+
+			tdtb.onclick = () => {
+				if(cqc.cP[i].route.length > 2) { //check if route array is not empty
+					alert("Bei Links/Rechts-Posten maximal 2 Routen");
+				}
+				else {
+					cqc.cP[i].complex = false;
+					draw(rc); //update canvas, tables
+				}
+			};
+
+            row.appendChild(tdtb);
+
             tableBody.appendChild(row);
         });
 		//add last row for new control
@@ -918,7 +957,8 @@ document.addEventListener('keydown', function(event) {
 		return {
 			length: null,
 			noA: null,
-			rP: []
+			pos: null,
+			rP: [],
 		}
 	}
 	//generate new control pair in object
@@ -932,6 +972,7 @@ document.addEventListener('keydown', function(event) {
 				x: null,
 				y: null,
 			},
+			complex: true,
 			route: []
 		};
 	}
@@ -1128,6 +1169,10 @@ document.getElementById("scaleInput").addEventListener("keydown", function(event
 			if (cqc.cP[ncP].route.length > nR) { //check if data exists already in current route
 				cqc.cP[ncP].route.splice(nR,1,gen_route()); //replace current route data with empty route sub-object
 			} else {
+				if (!cqc.cP[ncP].complex && cqc.cP[ncP].route.length > 1) {
+					alert("Bei Links/Rechts-Posten maximal 2 Routen");
+					return;
+				}
 			cqc.cP[ncP].route.push(gen_route()); //add new route sub-object
 			}
 			rDraw = true; //set route draw state
@@ -1145,6 +1190,7 @@ document.getElementById("scaleInput").addEventListener("keydown", function(event
 			rDraw = false; //reset route drawing mode
 			calcLength(); //calculate route length
 			calcDir(); //calculate number of sharp angles on route
+			calcSide(); //calculate left/right side of route
 		}
 	}
 	
@@ -1274,6 +1320,38 @@ document.getElementById("scaleInput").addEventListener("keydown", function(event
 				cqc.cP[indexC].route[indexR].noA = sharpAngle;
 			});
 		});
+	}
+
+	function calcSide() {
+
+		// Iterate over each control pair
+		cqc.cP.forEach((pair, indexC) => {
+			// Iterate over each route within the control pair
+			pair.route.forEach((route, indexR) => {
+
+				cqc.cP[indexC].route[indexR].pos = dominantSideOfRoute(pair, route);
+			});
+		});
+	}
+
+	function dominantSideOfRoute(pair, route) {
+		let sum = 0;
+		const start = pair.start;
+		const ziel = pair.ziel;
+		const routePoints = route.rP; // Get the route points
+
+		for (const p of routePoints) {
+			const dx = ziel.x - start.x;
+			const dy = ziel.y - start.y;
+			const px = p.x - start.x;
+			const py = p.y - start.y;
+
+			const cross = dx * py - dy * px;
+			sum += cross;
+		}
+
+		if (sum > 0) return "right";
+		if (sum < 0) return "left";
 	}
 	
 	function drawStart() {
